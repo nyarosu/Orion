@@ -1,5 +1,5 @@
 # Orion
-A 32-bit kernel &amp; operating system written from scratch, as the name implies, with a working shell and multi-tasking capabilities. 
+A 32-bit kernel &amp; operating system written from scratch, as the name implies, with a working shell and multi-tasking capabilities. ** WILL ONLY RUN ON x86 PROCESSORS (INTEL, AMD), NOT ON ARM OR ANY OTHER **
 
 # features
 
