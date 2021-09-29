@@ -1,12 +1,24 @@
-;Bootloader for Orion OS (role: Print "Welcome to Orion!" then boot kernel)
+;Bootloader for Orion (role: Print "Welcome to Orion!" then boot kernel)
 
-;BIOS loads us into 0x7c00 - so that needs to be our origin address.
-ORG 0x7c00
+;BIOS loads us into 0x7c00 - so that needs to be the address. However, since we can't know what the BIOS will initialize segment registers to, it
+; is better to set the segment registers to 0x7c00 and our origin "offset" to 0.
+ORG 0
 
 ;Tell the assembler that we are using a 16-bit architecture (When the CPU is running in real-mode, it is using a 16-bit architecture, regardless of its true architecture)
 BITS 16
 
 start:
+    ; Clear interrupts, change the segment registers and then enable them again. Prevents hardware from interrupting the process.
+    cli
+
+    mov ax, 0x7c0
+    mov ds, ax
+    mov es, ax
+    
+    mov ax, 0x00
+    mov ss, ax
+    mov sp, 0x7c00
+    sti
     ; Move the address of our message label into the si register.
     mov si, message
     call print
