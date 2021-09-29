@@ -6,15 +6,24 @@ ORG 0
 
 ;Tell the assembler that we are using a 16-bit architecture (When the CPU is running in real-mode, it is using a 16-bit architecture, regardless of its true architecture)
 BITS 16
+; Some BIOS will attempt to fill in a BPB (Bios Parameter Block). We must prevent this from corrupting our code. Fills in the null bytes we create below.
+_start:
+    jmp short start
+    nop
 
+times 33 db 0
 start:
+
+    jmp 0x7c0:step2
+
+step2:
     ; Clear interrupts, change the segment registers and then enable them again. Prevents hardware from interrupting the process.
     cli
 
     mov ax, 0x7c0
     mov ds, ax
     mov es, ax
-    
+
     mov ax, 0x00
     mov ss, ax
     mov sp, 0x7c00
