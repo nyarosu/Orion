@@ -2,7 +2,7 @@
 
 ;BIOS loads us into 0x7c00 - so that needs to be the address. However, since we can't know what the BIOS will initialize segment registers to, it
 ; is better to set the segment registers to 0x7c00 and our origin "offset" to 0.
-ORG 0
+ORG 0x7c00
 
 ;Tell the assembler that we are using a 16-bit architecture (When the CPU is running in real-mode, it is using a 16-bit architecture, regardless of its true architecture)
 BITS 16
@@ -14,7 +14,7 @@ _start:
 times 33 db 0
 start:
 
-    jmp 0x7c0:step2
+    jmp 0:step2
 
 
 
@@ -22,11 +22,9 @@ step2:
     ; Clear interrupts, change the segment registers and then enable them again. Prevents hardware from interrupting the process.
     cli
 
-    mov ax, 0x7c0
+    mov ax, 0x00
     mov ds, ax
     mov es, ax
-
-    mov ax, 0x00
     mov ss, ax
     mov sp, 0x7c00
     sti
@@ -34,25 +32,47 @@ step2:
     ;Ensure that we don't run the part of the code that includes our boot signature, by continuously jumping to the same point.
     jmp $
 
-print:
-    mov bx, 0
-.loop:
-    ; lodsb loops over all of the characters, adding them to the al register and then incrementing. Therefore, we compare the contents of the
-    ; al register to 0 (the null/terminating character), and if it isn't 0 we keep looping. While it isn't 0, we call our print_char subroutine to print that char.
-    ;Once it is 0, we call our "done" subroutine.
-    lodsb 
-    cmp al, 0
-    je .done
-    call print_char
-    jmp .loop
-.done:
-    ret
-print_char: 
-    ; The second line calls the video output subroutine in the bios. The bios sees the 0eh in the ah register, and knows we want to output a character.
-    ; It takes the character in the al register and outputs it to the screen.
-    mov ah, 0eh
-    int 0x10
-    ret
+.load_protected:
+    cli
+    lgdt[gdt_descriptor]
+    mov eax, cr0
+    or eax, 0x1
+    mov cr0, eax
+
+
+
+
+; GDT
+gdt_start:
+gdt_null:
+    dd 0x0
+    dd 0x0
+
+; offset 0x8
+gdt_code:
+    dw 0xffff 
+    dw 0    
+    db 0    
+    db 0x9a
+    db 11001111b
+    db 0
+gdt_data:
+    dw 0xffff 
+    dw 0    
+    db 0    
+    db 0x92
+    db 11001111b
+    db 0
+
+gdt_end:
+
+gdt_descriptor:
+    dw gdt_end - gdt_start-1
+    dd gdt_start
+
+[BITS 32]
+load32:
+    jmp $
 
 ;Pads all the bytes until the end (since our boot signature needs to be at the end), and then we add the boot signature.
 times 510-($ - $$) db 0
