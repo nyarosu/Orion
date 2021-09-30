@@ -16,6 +16,8 @@ start:
 
     jmp 0x7c0:step2
 
+
+
 step2:
     ; Clear interrupts, change the segment registers and then enable them again. Prevents hardware from interrupting the process.
     cli
@@ -28,9 +30,7 @@ step2:
     mov ss, ax
     mov sp, 0x7c00
     sti
-    ; Move the address of our message label into the si register.
-    mov si, message
-    call print
+
     ;Ensure that we don't run the part of the code that includes our boot signature, by continuously jumping to the same point.
     jmp $
 
@@ -53,12 +53,7 @@ print_char:
     mov ah, 0eh
     int 0x10
     ret
-message: db 'Welcome to Orion!', 0
-
-
-
 
 ;Pads all the bytes until the end (since our boot signature needs to be at the end), and then we add the boot signature.
 times 510-($ - $$) db 0
 dw 0xAA55
-
