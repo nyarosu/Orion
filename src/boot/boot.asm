@@ -6,6 +6,9 @@ ORG 0x7c00
 
 ;Tell the assembler that we are using a 16-bit architecture (When the CPU is running in real-mode, it is using a 16-bit architecture, regardless of its true architecture)
 BITS 16
+
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start
 ; Some BIOS will attempt to fill in a BPB (Bios Parameter Block). We must prevent this from corrupting our code. Fills in the null bytes we create below.
 _start:
     jmp short start
@@ -38,6 +41,7 @@ step2:
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
+    jmp CODE_SEG:load32
 
 
 
@@ -72,6 +76,20 @@ gdt_descriptor:
 
 [BITS 32]
 load32:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov ebp, 0x00200000
+    mov esp, ebp    
+
+    ;A20 line
+    in al, 0x92
+    or al, 2
+    out 0x92, al
+
     jmp $
 
 ;Pads all the bytes until the end (since our boot signature needs to be at the end), and then we add the boot signature.
