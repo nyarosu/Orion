@@ -5,6 +5,7 @@ A 32-bit kernel &amp; operating system written from scratch, as the name implies
 
 - FAT16 file system
 - Memory management
+- Multitasking/multithreading
 - Capable of loading ELF files and binary files
 - User shell
 - Support for user mode / kernel mode switching (with Intel's built in security protections)
